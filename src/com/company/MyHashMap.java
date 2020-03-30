@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class MyHashMap<K, V> {
+public class MyHashMap<K, V> implements MyMap<K,V> {
     private Node<K, V>[] MyHashM;
     private int size = 0;
     private int capacity = 16;
@@ -13,7 +13,8 @@ public class MyHashMap<K, V> {
         MyHashM = new Node[capacity];
     }
 
-    public boolean insert(final K key, final V value) {
+    public boolean insert( K key,  V value) {
+        boolean collis = true;
         if (size + 1 == capacity) {
             grow();
         }
@@ -25,10 +26,12 @@ public class MyHashMap<K, V> {
         List<Node<K, V>> nodeList = MyHashM[index].getNodes();
         for (Node<K, V> node : nodeList) {
             if (newValue(node, newNode, value)) {
-                return true;
-            } else if (collision(node, newNode, nodeList)) {
+                collis = false;
                 return true;
             }
+        }if(collis) {
+            collision(newNode, nodeList);
+            return true;
         }
         return false;
     }
@@ -55,6 +58,8 @@ public class MyHashMap<K, V> {
     }
 
     private boolean newValue(final Node<K, V> exist, final Node<K, V> newNode, final V value) {
+        if(exist.getK() == null && newNode.getK() == null){ exist.setV(value); return true;}
+        if(exist.getK() == null && newNode.getK() != null){ return false;}
         if (exist.getK().equals(newNode.getK()) && !exist.getV().equals(newNode.getV())) {
             exist.setV(value);
             return true;
@@ -62,14 +67,10 @@ public class MyHashMap<K, V> {
         return false;
     }
 
-    private boolean collision(final Node<K, V> exist, final Node<K, V> newNode, final List<Node<K, V>> nodeList) {
+    private boolean collision( Node<K, V> newNode,  List<Node<K, V>> nodeList) {
         nodeList.add(newNode);
         size++;
         return true;
-    }
-
-    public int size() {
-        return size;
     }
 
     public boolean delete(final K key) {
@@ -90,6 +91,9 @@ public class MyHashMap<K, V> {
     }
 
     private int hash(final K key) {
+        if(key == null){
+            return 0;
+        }
         int hash = 31;
         hash = hash * 17 + key.hashCode();
         return hash % MyHashM.length;
@@ -103,12 +107,18 @@ public class MyHashMap<K, V> {
             }
             List<Node<K, V>> nodeList = MyHashM[index].getNodes();
             for (Node<K, V> node : nodeList) {
+                if(node.getK() == null && key== null){return  node.getV();}
                 if (node.getK().equals(key)) {
                     return node.getV();
                 }
             }
         }
         return null;
+    }
+
+    @Override
+    public int size() {
+        return this.size;
     }
 
 
@@ -158,6 +168,9 @@ public class MyHashMap<K, V> {
 
         @Override
         public int hashCode() {
+            if(key == null){
+                return 0;
+            }
             hash = 31;
             hash = hash * 17 + key.hashCode();
             return hash;
